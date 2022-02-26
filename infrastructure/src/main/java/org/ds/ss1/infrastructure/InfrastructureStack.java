@@ -1,10 +1,11 @@
 package org.ds.ss1.infrastructure;
 
 import software.amazon.awscdk.Duration;
-import software.amazon.awscdk.services.ec2.Vpc;
+import software.amazon.awscdk.services.ec2.*;
 import software.amazon.awscdk.services.ecs.*;
-import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedFargateService;
-import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedTaskImageOptions;
+import software.amazon.awscdk.services.ecs.HealthCheck;
+import software.amazon.awscdk.services.elasticloadbalancingv2.*;
+import software.amazon.awscdk.services.elasticloadbalancingv2.Protocol;
 import software.amazon.awscdk.services.iam.Role;
 import software.amazon.awscdk.services.logs.LogGroup;
 import software.amazon.awscdk.services.logs.RetentionDays;
@@ -51,6 +52,12 @@ public class InfrastructureStack extends Stack {
         ContainerDefinitionOptions containerDefinitionOpts = ContainerDefinitionOptions.builder()
                 .image(ContainerImage.fromRegistry("dasmith/hello"))
                 .healthCheck(healthCheck)
+                .portMappings(
+                        List.of(PortMapping.builder()
+                                .containerPort(8080)
+                                .hostPort(8080)
+                                .build())
+                )
                 .memoryLimitMiB(512)
                 .logging(AwsLogDriver.Builder.create().streamPrefix("app-mesh-name").build())
                 .environment(Map.of("SERVICE_INSTANCE","AAA"))
@@ -75,15 +82,78 @@ public class InfrastructureStack extends Stack {
 
         helloTaskDef.addContainer("hello-container",containerDefinitionOpts);
 
-        FargateService fargateService = FargateService.Builder.create(this, "helloSvc")
+
+
+
+
+
+        SecurityGroup albSG = SecurityGroup.Builder.create(this, "albSG")
+                .vpc(vpc)
+                .allowAllOutbound(true)
+                .build();
+
+        albSG.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
+
+        SecurityGroup ecsSG = SecurityGroup.Builder.create(this, "ecsSG")
+                .vpc(vpc)
+                .allowAllOutbound(true)
+                .build();
+
+        ecsSG.addIngressRule(albSG, Port.allTcp());
+
+        ApplicationLoadBalancer alb = ApplicationLoadBalancer.Builder.create(this, "alb")
+                .vpc(vpc)
+                .internetFacing(true)
+                .securityGroup(albSG)
+                .build();
+
+        ApplicationListener applicationListener = alb.addListener("public-listener", BaseApplicationListenerProps.builder()
+                .port(80)
+                .open(true)
+                .build());
+
+        FargateService fargateService = FargateService.Builder.create(this, "hs")
                 .serviceName("hellosvc")
                 .cluster(cluster)
                 .taskDefinition(helloTaskDef)
                 .desiredCount(1)
+                .securityGroups(List.of(ecsSG))
+                .assignPublicIp(true)
                 .build();
 
+        applicationListener.addTargets("h1", AddApplicationTargetsProps.builder()
+                .port(8080)
+                .targets(List.of(fargateService))
+                .healthCheck(software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck.builder()
+                        .path("/health")
+                        .protocol(Protocol.HTTP)
+                        .build())
+                .build());
+
+        ApplicationTargetGroup targetGroup = ApplicationTargetGroup.Builder.create(this, "htg")
+                .port(8080)
+                .targetType(TargetType.IP)
+                .protocol(ApplicationProtocol.HTTP)
+                .vpc(vpc)
+                //.healthCheck(software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck.builder()
+                //        .path("/health")
+                //        .port("8080")
+                //.build())
+                .build();
+
+        /*targetGroup.configureHealthCheck(
+                software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck.builder()
+                        .path("/health")
+                        .protocol(Protocol.HTTP)
+                        .build()
+        );*/
+
+        //applicationListener.addTargetGroups("h1", AddApplicationTargetGroupsProps.builder()
+        //        .targetGroups(List.of(targetGroup))
+        //        .build());
 
 
 
+        //fargateService.attachToApplicationTargetGroup(targetGroup);
     }
 }
