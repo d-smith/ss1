@@ -60,12 +60,12 @@ public class InfrastructureStack extends Stack {
                 )
                 .memoryLimitMiB(512)
                 .logging(AwsLogDriver.Builder.create().streamPrefix("app-mesh-name").build())
-                .environment(Map.of("SERVICE_INSTANCE","AAA"))
+                .environment(Map.of("SERVICE_INSTANCE",id))
                 .logging(
                         LogDriver.awsLogs(
                                 AwsLogDriverProps.builder()
                                         .logGroup(logGroup)
-                                        .streamPrefix("hi")
+                                        .streamPrefix(id + "svc")
                                         .build()
                         )
                 )
@@ -81,11 +81,6 @@ public class InfrastructureStack extends Stack {
                 .build();
 
         helloTaskDef.addContainer("hello-container",containerDefinitionOpts);
-
-
-
-
-
 
         SecurityGroup albSG = SecurityGroup.Builder.create(this, "albSG")
                 .vpc(vpc)
@@ -135,25 +130,8 @@ public class InfrastructureStack extends Stack {
                 .targetType(TargetType.IP)
                 .protocol(ApplicationProtocol.HTTP)
                 .vpc(vpc)
-                //.healthCheck(software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck.builder()
-                //        .path("/health")
-                //        .port("8080")
-                //.build())
                 .build();
 
-        /*targetGroup.configureHealthCheck(
-                software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck.builder()
-                        .path("/health")
-                        .protocol(Protocol.HTTP)
-                        .build()
-        );*/
 
-        //applicationListener.addTargetGroups("h1", AddApplicationTargetGroupsProps.builder()
-        //        .targetGroups(List.of(targetGroup))
-        //        .build());
-
-
-
-        //fargateService.attachToApplicationTargetGroup(targetGroup);
     }
 }
