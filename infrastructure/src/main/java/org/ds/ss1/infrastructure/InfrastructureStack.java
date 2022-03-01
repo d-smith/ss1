@@ -49,31 +49,37 @@ public class InfrastructureStack extends Stack {
                 .retries(3)
                 .build();
 
-        ContainerDefinitionOptions containerDefinitionOpts = ContainerDefinitionOptions.builder()
-                .image(ContainerImage.fromRegistry("dasmith/hello"))
-                .healthCheck(healthCheck)
-                .portMappings(
-                        List.of(PortMapping.builder()
-                                .containerPort(8080)
-                                .hostPort(8080)
-                                .build())
-                )
-                .memoryLimitMiB(512)
-                .logging(AwsLogDriver.Builder.create().streamPrefix("app-mesh-name").build())
-                .environment(Map.of("SERVICE_INSTANCE",id))
-                .logging(
-                        LogDriver.awsLogs(
-                                AwsLogDriverProps.builder()
-                                        .logGroup(logGroup)
-                                        .streamPrefix(id + "svc")
-                                        .build()
-                        )
-                )
-                .build();
 
 
 
-        ServiceComponents.instantiateService("s1svc",this,taskRole,containerDefinitionOpts,vpc,cluster);
+        for(String name: serviceNames) {
+            ContainerDefinitionOptions containerDefinitionOpts = ContainerDefinitionOptions.builder()
+                    .image(ContainerImage.fromRegistry("dasmith/hello"))
+                    .healthCheck(healthCheck)
+                    .portMappings(
+                            List.of(PortMapping.builder()
+                                    .containerPort(8080)
+                                    .hostPort(8080)
+                                    .build())
+                    )
+                    .memoryLimitMiB(512)
+                    .logging(AwsLogDriver.Builder.create().streamPrefix("app-mesh-name").build())
+                    .environment(Map.of("SERVICE_INSTANCE",name))
+                    .logging(
+                            LogDriver.awsLogs(
+                                    AwsLogDriverProps.builder()
+                                            .logGroup(logGroup)
+                                            .streamPrefix(name + "svc")
+                                            .build()
+                            )
+                    )
+                    .build();
+
+
+            ServiceComponents.instantiateService(name,this,taskRole,containerDefinitionOpts,vpc,cluster);
+        }
+
+
 
 
     }

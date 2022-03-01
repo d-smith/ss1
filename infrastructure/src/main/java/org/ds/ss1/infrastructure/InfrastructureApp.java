@@ -16,9 +16,9 @@ public class InfrastructureApp {
                 .build();
 
 
-        new InfrastructureStack(app, System.getenv("STACK_NAME"), StackProps.builder()
+        new InfrastructureStack(app, "msstack", StackProps.builder()
                 .env(env)
-                .build());
+                .build(), "s1","s2");
 
         app.synth();
     }
