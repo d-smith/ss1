@@ -21,7 +21,7 @@ public class InfrastructureStack extends Stack {
         this(scope, id, null);
     }
 
-    public InfrastructureStack(final Construct scope, final String id, final StackProps props) {
+    public InfrastructureStack(final Construct scope, final String id, final StackProps props, String... serviceNames) {
         super(scope, id, props);
 
 
@@ -72,65 +72,8 @@ public class InfrastructureStack extends Stack {
                 .build();
 
 
-        TaskDefinition helloTaskDef = TaskDefinition.Builder.create(this, "hello-task")
-                .family("task")
-                .compatibility(Compatibility.EC2_AND_FARGATE)
-                .cpu("512")
-                .memoryMiB("1024")
-                .taskRole(taskRole)
-                .build();
 
-        helloTaskDef.addContainer("hello-container",containerDefinitionOpts);
-
-        SecurityGroup albSG = SecurityGroup.Builder.create(this, "albSG")
-                .vpc(vpc)
-                .allowAllOutbound(true)
-                .build();
-
-        albSG.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
-
-        SecurityGroup ecsSG = SecurityGroup.Builder.create(this, "ecsSG")
-                .vpc(vpc)
-                .allowAllOutbound(true)
-                .build();
-
-        ecsSG.addIngressRule(albSG, Port.allTcp());
-
-        ApplicationLoadBalancer alb = ApplicationLoadBalancer.Builder.create(this, "alb")
-                .vpc(vpc)
-                .internetFacing(true)
-                .securityGroup(albSG)
-                .build();
-
-        ApplicationListener applicationListener = alb.addListener("public-listener", BaseApplicationListenerProps.builder()
-                .port(80)
-                .open(true)
-                .build());
-
-        FargateService fargateService = FargateService.Builder.create(this, "hs")
-                .serviceName("hellosvc")
-                .cluster(cluster)
-                .taskDefinition(helloTaskDef)
-                .desiredCount(1)
-                .securityGroups(List.of(ecsSG))
-                .assignPublicIp(true)
-                .build();
-
-        applicationListener.addTargets("h1", AddApplicationTargetsProps.builder()
-                .port(8080)
-                .targets(List.of(fargateService))
-                .healthCheck(software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck.builder()
-                        .path("/health")
-                        .protocol(Protocol.HTTP)
-                        .build())
-                .build());
-
-        ApplicationTargetGroup targetGroup = ApplicationTargetGroup.Builder.create(this, "htg")
-                .port(8080)
-                .targetType(TargetType.IP)
-                .protocol(ApplicationProtocol.HTTP)
-                .vpc(vpc)
-                .build();
+        ServiceComponents.instantiateService("s1svc",this,taskRole,containerDefinitionOpts,vpc,cluster);
 
 
     }
