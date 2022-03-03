@@ -1,5 +1,6 @@
 package org.ds.ss1.infrastructure;
 
+import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.services.ec2.Peer;
 import software.amazon.awscdk.services.ec2.Port;
 import software.amazon.awscdk.services.ec2.SecurityGroup;
@@ -54,6 +55,10 @@ public class ServiceComponents {
                 .vpc(vpc)
                 .internetFacing(true)
                 .securityGroup(albSG)
+                .build();
+
+        CfnOutput.Builder.create(scope,makeId.apply("albdns"))
+                .value(alb.getLoadBalancerDnsName())
                 .build();
 
         ApplicationListener applicationListener = alb.addListener(makeId.apply("public-listener"), BaseApplicationListenerProps.builder()
