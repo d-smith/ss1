@@ -18,7 +18,7 @@ public class InfrastructureApp {
 
         new InfrastructureStack(app, "msstack", StackProps.builder()
                 .env(env)
-                .build(), "s1","s2");
+                .build(), "s1","s2","s3","s4","s5");
 
         app.synth();
     }
