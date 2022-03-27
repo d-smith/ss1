@@ -46,7 +46,7 @@ public class Sample {
     }
 
     public static void main(String... args) throws Exception {
-        String[] endpoints = new String[] { "A", "B", "C", "D", "E","F","G","H","I","J","K","L" };
+        String[] endpoints = new String[] { "A", "B", "C", "D", "E","F","G","H" };
 
 
         Lattice<String> lattice = createLattice(endpoints);
