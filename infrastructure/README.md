@@ -24,3 +24,13 @@ From Wolfram Alpha
 
 50 endpoints: 1225
 25 endpoints: 300
+
+What is we go 3 endpoints per shard, max overlap of 2?
+
+
+12 endpoints: 220 shards (12 choose 3)
+10 endpoints: 120 shards (10 choose 3)
+8 endpoints: 56 shards (8 choose 3)
+
+50 - 19600
+25 - 2300

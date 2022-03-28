@@ -46,7 +46,7 @@ public class Sample {
     }
 
     public static void main(String... args) throws Exception {
-        String[] endpoints = new String[] { "A", "B", "C", "D", "E","F","G","H" };
+        String[] endpoints = new String[] { "A", "B", "C", "D", "E","F","G","H", "I", "J", "K", "L" };
 
 
         Lattice<String> lattice = createLattice(endpoints);
@@ -56,7 +56,7 @@ public class Sample {
 
         for(int i = 0; i < 1000; i++) {
             try {
-                Lattice<String> l = sharder.shuffleShard(lattice, 2, 1);
+                Lattice<String> l = sharder.shuffleShard(lattice, 3, 2);
                 System.out.println(l.toString());
             } catch(NoShardsAvailableException e) {
                 System.out.println("No more shards available - allocated " + i);
