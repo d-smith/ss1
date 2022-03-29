@@ -3,7 +3,8 @@ many helpful details.
 
 This project by default creates two instances of a hello service with two different endpoints.
 
-## Installing Infima
+## Infimia Samples 
+### Installing Infima
 
 From the [readme](https://github.com/awslabs/route53-infima) -- clone the project and use Maven to install it
 
@@ -11,6 +12,7 @@ git clone https://github.com/awslabs/route53-infima
 cd route53-infima
 mvn clean install -Dgpg.skip=true
 
+### Sample 1
 
 Looking at the stateful searching shuffle sharder, we can get the following combinations
 from a set of endpoints, with a shard containing 2 endpoints with a max overlap of 1 with all
@@ -34,3 +36,9 @@ What is we go 3 endpoints per shard, max overlap of 2?
 
 50 - 19600
 25 - 2300
+
+### Sample 2
+
+100,000 requests - endpoint distribution amongst a lattice of 12 endpoints:
+
+{A=16786, B=16800, C=16503, D=16545, E=16665, F=16475, G=16623, H=16822, I=16841, J=16644, K=16809, L=16475}
